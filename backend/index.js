@@ -4,26 +4,35 @@ dotenv.config();
 
 import express from "express";
 import { connectDB } from "./config/db.js";
-
+import trainRoutes from "./route/trainRoutes.js";
 const app = express();
 
-const PORT = 5000;
+
 
 // Middleware
 app.use(express.json());
 
-// Home route
-app.get("/", (req, res) => {
-    res.json({
-        message: "Backend server is running successfully!"
-    });
-});
+// // Home route
+// app.get("/", (req, res) => {
+//     res.json({
+//         message: "Backend server is running successfully!"
+//     });
+// });
 
 connectDB();
 
+// Routes
+app.use("/api/trains", trainRoutes);
 
+
+app.get("/", (req, res) => {
+  res.send("TransitHub Backend is Running");
+});
+
+
+const PORT = process.env.PORT ||5000;
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

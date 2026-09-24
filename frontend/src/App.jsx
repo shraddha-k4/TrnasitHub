@@ -1,17 +1,34 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+// import { useState } from 'react'
+
+
+
+// function App() {
+//   const [count, setCount] = useState(0)
+
+//   return (
+//     <>
+//       Hello
+//     </>
+//   )
+// }
+
+// export default App
+
+
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Home from "../user/home.jsx";
 
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      Hello
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
