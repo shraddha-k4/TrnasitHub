@@ -5,6 +5,7 @@ dotenv.config();
 import express from "express";
 import { connectDB } from "./config/db.js";
 import trainRoutes from "./route/trainRoutes.js";
+import Pmplroute from "./route/Pmplroute.js";
 const app = express();
 
 
@@ -23,6 +24,7 @@ connectDB();
 
 // Routes
 app.use("/api/trains", trainRoutes);
+app.use("/api/pmpl", Pmplroute);
 
 
 app.get("/", (req, res) => {
