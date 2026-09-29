@@ -1,16 +1,33 @@
 import MSRTCBus from "../model/msrtcBusModel.js";
 
 
-// CREATE BUS
 export const createBus = async (req, res) => {
   try {
-    const bus = await MSRTCBus.create(req.body);
+    const { route, bus_schedule } = req.body;
+
+    const buses = bus_schedule.map((bus) => ({
+      bus_id: bus.bus_id,
+      from: route.from,
+      to: route.to,
+      operator: route.operator,
+      departure_time: bus.departure_time,
+      arrival_time: bus.arrival_time,
+      duration: "1 hour 30 minutes",
+      bus_type: bus.bus_type,
+      route_via: bus.route_via.split(",").map((stop) => stop.trim()),
+      destination: bus.destination,
+      frequency: bus.frequency,
+    }));
+
+    const createdBuses = await MSRTCBus.insertMany(buses);
 
     res.status(201).json({
       success: true,
-      message: "MSRTC bus created successfully",
-      data: bus,
+      message: "MSRTC buses created successfully",
+      count: createdBuses.length,
+      data: createdBuses,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -18,8 +35,6 @@ export const createBus = async (req, res) => {
     });
   }
 };
-
-
 // GET ALL BUSES
 export const getAllBuses = async (req, res) => {
   try {
