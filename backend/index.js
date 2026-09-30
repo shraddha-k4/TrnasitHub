@@ -7,7 +7,13 @@ import { connectDB } from "./config/db.js";
 import trainRoutes from "./route/trainRoutes.js";
 import Pmplroute from "./route/Pmplroute.js";
 import msrtcRoutes from "./route/msrtcRoutes.js"
+import cors from "cors";
+
 const app = express();
+
+app.use(cors());
+
+app.use(express.json());
 
 
 

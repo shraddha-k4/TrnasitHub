@@ -17,7 +17,7 @@
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Home from "../user/home.jsx";
+import Home from "../src/user/home.jsx";
 
 
 function App() {
