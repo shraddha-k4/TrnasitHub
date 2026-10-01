@@ -67,20 +67,19 @@ export const createTrainSchedule = async (req, res) => {
 // ======================================
 export const getTrains = async (req, res) => {
   try {
-    const schedule = await TrainSchedule.findOne();
+    const schedules = await TrainSchedule.find();
 
-    if (!schedule) {
+    if (!schedules || schedules.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Train schedule not found"
+        message: "Train schedules not found"
       });
     }
 
     res.status(200).json({
       success: true,
-      route: schedule.route,
-      count: schedule.trains.length,
-      trains: schedule.trains
+      count: schedules.length,
+      schedules: schedules
     });
 
   } catch (error) {
@@ -90,8 +89,6 @@ export const getTrains = async (req, res) => {
     });
   }
 };
-
-
 // ======================================
 // PUSH - ADD ONE NEW TRAIN
 // ======================================
