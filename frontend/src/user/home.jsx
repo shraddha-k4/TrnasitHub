@@ -1870,323 +1870,97 @@ pmplData.forEach((bus, index) => {
 }
 
 
-// ==================================================
-// BUS TABLE COMPONENT
-// ==================================================
-
-// function BusTable({ data, type }) {
-
-//   if (!data || data.length === 0) {
-
-//     return (
-
-//       <div className="bg-white rounded-2xl shadow p-8 text-center">
-
-//         <div className="text-5xl mb-3">
-//           🚌
-//         </div>
-
-//         <h3 className="font-bold text-xl">
-//           No {type} data available
-//         </h3>
-
-//         <p className="text-gray-500 mt-2">
-//           Add route data to the backend.
-//         </p>
-
-//       </div>
-
-//     );
-
-//   }
-
-//   return (
-
-//     <div className="bg-white rounded-2xl shadow-md border overflow-hidden">
-
-//       <div className="overflow-x-auto">
-
-//         <table className="w-full text-left">
-
-//           <thead>
-
-//             <tr className="bg-orange-500 text-white text-xs uppercase">
-
-//               <th className="p-4">
-//                 Route
-//               </th>
-
-//               <th className="p-4">
-//                 From
-//               </th>
-
-//               <th className="p-4">
-//                 To
-//               </th>
-
-//               <th className="p-4">
-//                 Duration
-//               </th>
-
-//               <th className="p-4">
-//                 Fare
-//               </th>
-
-//             </tr>
-
-//           </thead>
-
-//           <tbody className="divide-y">
-
-//             {data.map((bus, index) => {
-
-//               const route =
-//                 bus?.route_info || {};
-
-//               return (
-
-//                 <tr
-//                   key={index}
-//                   className="hover:bg-orange-50"
-//                 >
-
-//                   <td className="p-4 font-bold">
-
-//                     {route.route_number ||
-//                       bus.route_number ||
-//                       bus.routeNumber ||
-//                       bus.bus_number ||
-//                       bus.busNumber ||
-//                       bus.bus_id ||
-//                       "N/A"}
-
-//                   </td>
-
-//                   <td className="p-4">
-
-//                     {route.source ||
-//                       bus.source ||
-//                       bus.from ||
-//                       "N/A"}
-
-//                   </td>
-
-//                   <td className="p-4">
-
-//                     {route.destination ||
-//                       bus.destination ||
-//                       bus.to ||
-//                       "N/A"}
-
-//                   </td>
-
-//                   <td className="p-4">
-
-//                     {route.estimated_duration ||
-//                       bus.duration ||
-//                       bus.travel_time ||
-//                       "N/A"}
-
-//                   </td>
-
-//                   <td className="p-4 text-green-600 font-bold">
-
-//                     {bus.fare
-//                       ? `₹${bus.fare}`
-//                       : "N/A"}
-
-//                   </td>
-
-//                 </tr>
-
-//               );
-
-//             })}
-
-//           </tbody>
-
-//         </table>
-
-//       </div>
-
-//     </div>
-
-//   );
-
-// }
 function BusTable({ data, type }) {
-
-  if (!data || data.length === 0) {
-
-    return (
-      <div className="bg-white rounded-2xl shadow p-8 text-center">
-
-        <div className="text-5xl mb-3">
-          🚌
-        </div>
-
-        <h3 className="font-bold text-xl">
-          No {type} data available
-        </h3>
-
-        <p className="text-gray-500 mt-2">
-          Add route data to the backend.
-        </p>
-
-      </div>
-    );
-
-  }
-
-  return (
-
-    <div className="bg-white rounded-2xl shadow-md border overflow-hidden">
-
-      <div className="overflow-x-auto">
-
-        <table className="w-full text-left">
-
-          <thead>
-
-            <tr className="bg-orange-500 text-white text-xs uppercase">
-
-              <th className="p-4">
-                Route
-              </th>
-
-              <th className="p-4">
-                Bus No
-              </th>
-
-              <th className="p-4">
-                From
-              </th>
-
-              <th className="p-4">
-                To
-              </th>
-
-              <th className="p-4">
-                Departure
-              </th>
-
-              <th className="p-4">
-                Arrival
-              </th>
-
-              <th className="p-4">
-                Duration
-              </th>
-
-            </tr>
-
-          </thead>
-
-
-          <tbody className="divide-y">
-
-            {data.map((bus, index) => {
-
-              const route =
-                bus?.route_info || {};
-
-              const trips =
-                Array.isArray(bus?.trips)
-                  ? bus.trips
-                  : [];
-
-              return trips.map(
-                (trip, tripIndex) => (
-
-                  <tr
-                    key={`${index}-${tripIndex}`}
-                    className="hover:bg-orange-50"
-                  >
-
-                    {/* ROUTE */}
-
-                    <td className="p-4 font-bold">
-
-                      {route.route_number ||
-                        "N/A"}
-
-                    </td>
-
-
-                    {/* BUS NUMBER */}
-
-                    <td className="p-4 font-semibold">
-
-                      {trip.bus_number ||
-                        "N/A"}
-
-                    </td>
-
-
-                    {/* FROM */}
-
-                    <td className="p-4">
-
-                      {route.source ||
-                        "N/A"}
-
-                    </td>
-
-
-                    {/* TO */}
-
-                    <td className="p-4">
-
-                      {route.destination ||
-                        "N/A"}
-
-                    </td>
-
-
-                    {/* DEPARTURE */}
-
-                    <td className="p-4 text-orange-600 font-semibold">
-
-                      {trip.departure_time ||
-                        "N/A"}
-
-                    </td>
-
-
-                    {/* ARRIVAL */}
-
-                    <td className="p-4">
-
-                      {trip.arrival_time ||
-                        "N/A"}
-
-                    </td>
-
-
-                    {/* DURATION */}
-
-                    <td className="p-4">
-
-                      {trip.duration ||
-                        "N/A"}
-
-                    </td>
-
-                  </tr>
-
-                )
-              );
-
-            })}
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-    </div>
-
-  );
-
+if (!data || data.length === 0) {
+return ( <div className="bg-white rounded-2xl shadow p-8 text-center"> <div className="text-5xl mb-3">🚌</div> <h3 className="font-bold text-xl">
+No {type} data available </h3> <p className="text-gray-500 mt-2">
+Check the backend API and route data. </p> </div>
+);
+}
+
+// Convert PMPL trips and direct MSRTC bus records
+// into one common table format.
+const rows = data.flatMap((bus, index) => {
+const route = bus?.route_info || {};
+
+
+if (type === "PMPL") {
+  const trips = Array.isArray(bus?.trips)
+    ? bus.trips
+    : [];
+
+  return trips.map((trip, tripIndex) => ({
+    id: `${index}-${tripIndex}`,
+    route: route.route_number || bus.route_number || "N/A",
+    busNo: trip.bus_number || "N/A",
+    from: route.source || bus.from || bus.source || "N/A",
+    to: route.destination || bus.to || bus.destination || "N/A",
+    departure: trip.departure_time || "N/A",
+    arrival: trip.arrival_time || "N/A",
+    duration:
+      trip.duration ||
+      route.estimated_duration ||
+      bus.duration ||
+      "N/A",
+    frequency: bus.frequency || "Available",
+    via: ""
+  }));
+}
+
+// MSRTC records have timetable fields directly in bus.
+return [{
+  id: `${index}`,
+  route: bus.bus_id || bus.route_number || "N/A",
+  busNo: bus.bus_id || "N/A",
+  from: bus.from || bus.source || "N/A",
+  to: bus.to || bus.destination || "N/A",
+  departure: bus.departure_time || "N/A",
+  arrival: bus.arrival_time || "N/A",
+  duration: bus.duration || bus.travel_time || "N/A",
+  frequency: bus.frequency || "Available",
+  via: Array.isArray(bus.route_via)
+    ? bus.route_via.join(" → ")
+    : bus.route_via || ""
+}];
+
+
+});
+
+if (rows.length === 0) {
+return ( <div className="bg-white rounded-2xl shadow p-8 text-center"> <h3 className="font-bold text-xl">
+No {type} timetable available </h3> <p className="text-gray-500 mt-2">
+No trips were found in the API response. </p> </div>
+);
+}
+
+return ( <div className="bg-white rounded-2xl shadow-md border overflow-hidden"> <div className="overflow-x-auto"> <table className="w-full text-left"> <thead> <tr className="bg-orange-500 text-white text-xs uppercase"> <th className="p-4">Route / Bus ID</th> <th className="p-4">From</th> <th className="p-4">To</th> <th className="p-4">Departure</th> <th className="p-4">Arrival</th> <th className="p-4">Duration</th> <th className="p-4">Frequency</th> <th className="p-4">Via</th> </tr> </thead>
+
+
+      <tbody className="divide-y">
+        {rows.map((row) => (
+          <tr
+            key={row.id}
+            className="hover:bg-orange-50"
+          >
+            <td className="p-4 font-bold">
+              {row.route}
+            </td>
+            <td className="p-4">{row.from}</td>
+            <td className="p-4">{row.to}</td>
+            <td className="p-4 text-orange-600 font-semibold">
+              {row.departure}
+            </td>
+            <td className="p-4">{row.arrival}</td>
+            <td className="p-4">{row.duration}</td>
+            <td className="p-4">{row.frequency}</td>
+            <td className="p-4">{row.via || "—"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+);
 }
