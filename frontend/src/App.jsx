@@ -18,13 +18,16 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "../src/user/home.jsx";
+import HomePage from "./pages/HomePage.jsx";
+import RoutePlannerPage from "./pages/RoutePlannerPage.jsx";
 
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/route-planner" element={<RoutePlannerPage />} />
 
       </Routes>
     </BrowserRouter>
