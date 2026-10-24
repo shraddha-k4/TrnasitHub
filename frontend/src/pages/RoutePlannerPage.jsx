@@ -7,7 +7,8 @@ import {
   fetchPMPL,
   searchPMPL,
   fetchMSRTC,
-  searchMSRTC
+  searchMSRTC,
+  fetchMetro
 } from "../api/apiendpoint.jsx";
 
 export default function RoutePlannerPage() {
@@ -28,6 +29,7 @@ export default function RoutePlannerPage() {
   const [trainData, setTrainData] = useState([]);
   const [pmplData, setPmplData] = useState([]);
   const [msrtcData, setMsrtcData] = useState([]);
+  const [metroData, setMetroData] = useState([]);
 
   // ==========================================
   // TEXT & DIRECTION UTILITIES
@@ -90,6 +92,87 @@ export default function RoutePlannerPage() {
     if (Array.isArray(response?.routes)) return response.routes;
     if (Array.isArray(response?.result)) return response.result;
     return [];
+  };
+
+  // ==========================================
+  // METRO UTILITIES (dynamic, backend driven)
+  // ==========================================
+  const extractMetroArray = (response) => {
+    const direct = extractArray(response);
+    if (direct.length > 0) return direct;
+    if (Array.isArray(response?.metro)) return response.metro;
+    if (Array.isArray(response?.lines)) return response.lines;
+    if (Array.isArray(response?.metros)) return response.metros;
+    if (Array.isArray(response?.data?.data)) return response.data.data;
+    if (response?.data && typeof response.data === "object" && !Array.isArray(response.data)) {
+      return [response.data];
+    }
+    return [];
+  };
+
+  // Reduce a name to its core so "Pune Junction" ~ "Pune Railway Station"
+  const stationCore = (value) => {
+    let text = normalizeText(value);
+    if (text.includes("pimpri") || text.includes("pcmc")) return "pcmc";
+    text = text
+      .replace(/\b(junction|jn|station|stn|railway|metro|terminal|road)\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return text;
+  };
+
+  const stationMatches = (stationName, query) => {
+    const n = normalizeText(stationName);
+    const q = normalizeText(query);
+    if (!n || !q) return false;
+    if (n.includes(q) || q.includes(n)) return true;
+    const nc = stationCore(stationName);
+    const qc = stationCore(query);
+    if (!nc || !qc) return false;
+    return nc === qc || nc.includes(qc) || qc.includes(nc);
+  };
+
+  const getMetroStationNames = (metro) => {
+    const list =
+      metro?.stations ||
+      metro?.stops ||
+      metro?.station_list ||
+      metro?.route_stations ||
+      [];
+    if (!Array.isArray(list)) return [];
+    return list
+      .map((s) =>
+        typeof s === "string"
+          ? s
+          : s?.station_name || s?.stop_name || s?.name || s?.shortName || ""
+      )
+      .filter(Boolean);
+  };
+
+  // Returns { stations: [...stations between src and dst in travel order] } or null
+  const matchMetro = (metro, src, dst) => {
+    const names = getMetroStationNames(metro);
+
+    if (names.length > 0) {
+      const srcIdx = names.findIndex((n) => stationMatches(n, src));
+      const dstIdx = names.findIndex((n) => stationMatches(n, dst));
+      if (srcIdx === -1 || dstIdx === -1 || srcIdx === dstIdx) return null;
+
+      const stations =
+        srcIdx < dstIdx
+          ? names.slice(srcIdx, dstIdx + 1)
+          : names.slice(dstIdx, srcIdx + 1).reverse();
+      return { stations };
+    }
+
+    // Fallback: simple from/to documents
+    const from = metro?.from || metro?.source || metro?.route_info?.source;
+    const to = metro?.to || metro?.destination || metro?.route_info?.destination;
+    if (from && to && isCorrectDirection(from, to, src, dst)) {
+      return { stations: [] };
+    }
+
+    return null;
   };
 
   // ==========================================
@@ -183,6 +266,22 @@ export default function RoutePlannerPage() {
         } else {
           setMsrtcData([]);
         }
+      }
+
+      // 4. Fetch Metro from backend and match client-side
+      const metroResult = await fetchMetro();
+      if (metroResult.success) {
+        const lines = extractMetroArray(metroResult.data);
+        const matched = [];
+        lines.forEach((line) => {
+          const result = matchMetro(line, src, dst);
+          if (result) {
+            matched.push({ ...line, __matched: result });
+          }
+        });
+        setMetroData(matched);
+      } else {
+        setMetroData([]);
       }
     } catch (err) {
       console.error("Route search error:", err);
@@ -282,7 +381,7 @@ export default function RoutePlannerPage() {
             badgeColor: "bg-orange-100 text-orange-800",
             duration: trip.duration || route.estimated_duration || "55 min",
             changes: 0,
-            price: bus.fare ? `₹${bus.fare}` : "₹25",
+            // price: bus.fare ? `₹${bus.fare}` : "₹25",
             frequency: trip.bus_number ? `Bus: ${trip.bus_number}` : "Frequent",
             steps: [
               `From: ${route.source || source}`,
@@ -309,7 +408,7 @@ export default function RoutePlannerPage() {
           badgeColor: "bg-orange-100 text-orange-800",
           duration: route.estimated_duration || bus.duration || "50 min",
           changes: 0,
-          price: bus.fare ? `₹${bus.fare}` : "₹25",
+          // price: bus.fare ? `₹${bus.fare}` : "₹25",
           frequency: bus.frequency || "Available",
           steps: [
             `From: ${route.source || source}`,
@@ -330,7 +429,7 @@ export default function RoutePlannerPage() {
         badgeColor: "bg-blue-100 text-blue-800",
         duration: bus.duration || bus.travel_time || "60 min",
         changes: bus.changes || 0,
-        price: bus.fare ? `₹${bus.fare}` : "₹45",
+        // price: bus.fare ? `₹${bus.fare}` : "₹45",
         frequency: bus.frequency || "Daily",
         steps: [
           `From: ${bus.from || bus.source || source}`,
@@ -344,33 +443,54 @@ export default function RoutePlannerPage() {
       });
     });
 
-    // PUNE METRO (Simulated Multi-modal option when Pune / PCMC metro corridor is selected)
-    if (
-      normalizeText(source).includes("pune") ||
-      normalizeText(destination).includes("pune") ||
-      normalizeText(source).includes("pimpri") ||
-      normalizeText(destination).includes("pimpri") ||
-      normalizeText(source).includes("shivajinagar") ||
-      normalizeText(destination).includes("shivajinagar")
-    ) {
+    // PUNE METRO (dynamic - from backend /api/metro/getallmetro)
+    metroData.forEach((metro, index) => {
+      const stations = metro?.__matched?.stations || [];
+      const stopCount = stations.length > 1 ? stations.length - 1 : 0;
+      const lineName =
+        metro.line_name || metro.lineName || metro.name || metro.line || "Pune Metro";
+
+      let duration = metro.duration || metro.travel_time || metro.estimated_duration;
+      if (!duration) {
+        duration = stopCount > 0 ? `${Math.max(stopCount * 2, 5)} min` : "25 min";
+      }
+
+      const firstTrain = metro.first_train || metro.start_time;
+      const lastTrain = metro.last_train || metro.end_time;
+      const hours =
+        metro.operating_hours ||
+        metro.timings ||
+        (firstTrain && lastTrain ? `${firstTrain} to ${lastTrain}` : null);
+
+      const steps = [];
+      if (stations.length > 0) {
+        steps.push(`Board Metro at ${stations[0]}`);
+        steps.push(`Alight at ${stations[stations.length - 1]}`);
+        if (stations.length > 2) {
+          steps.push(`Stations: ${stations.join(" → ")}`);
+        }
+      } else {
+        steps.push(`From: ${metro.from || metro.source || source}`);
+        steps.push(`To: ${metro.to || metro.destination || destination}`);
+      }
+      steps.push("Fast AC Rapid Transit avoiding city traffic");
+      if (hours) {
+        steps.push(`Operating hours: ${hours}`);
+      }
+
       options.push({
-        id: "metro-direct-1",
+        id: `metro-${index}`,
         type: "metro",
-        title: "Pune Metro - Purple / Aqua Line",
+        title: `Pune Metro - ${lineName}`,
         badge: "Rapid Transit",
         badgeColor: "bg-purple-100 text-purple-800",
-        duration: "25 min",
-        changes: 0,
-        price: "₹20",
-        frequency: "Every 7 mins",
-        steps: [
-          `Board Metro at nearest station (Civil Court / Shivajinagar / PCMC)`,
-          `Fast AC Rapid Transit avoiding city traffic`,
-          `Alight at destination metro terminal`,
-          `Operating hours: 06:00 AM to 10:00 PM`
-        ]
+        duration,
+        changes: metro.changes || 0,
+        // price: metro.fare ? `₹${metro.fare}` : "₹20",
+        frequency: metro.frequency || metro.headway || "Frequent",
+        steps
       });
-    }
+    });
 
     return options;
   };
@@ -521,7 +641,7 @@ export default function RoutePlannerPage() {
               <span className="text-orange-600">{destination}</span>
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Showing dynamic schedules and fares from TransitHub backend
+              Showing  schedules
             </p>
           </div>
 
@@ -610,12 +730,7 @@ export default function RoutePlannerPage() {
                       </div>
                     </div>
 
-                    <div>
-                      <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                        Est. Fare
-                      </div>
-                      <div className="font-black text-emerald-600 text-base">{option.price}</div>
-                    </div>
+                    
                   </div>
                 </div>
 
