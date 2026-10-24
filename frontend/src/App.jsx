@@ -22,6 +22,8 @@ import HomePage from "./pages/HomePage.jsx";
 import RoutePlannerPage from "./pages/RoutePlannerPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
+import TimetablesPage from "./pages/TimetablesPage.jsx";
+import LiveTrackPage from "./pages/LiveTrackPage.jsx";
 
 
 function App() {
@@ -30,6 +32,8 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/route-planner" element={<RoutePlannerPage />} />
+        <Route path="/timetables" element={<TimetablesPage />} />
+        <Route path="/live-track" element={<LiveTrackPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Routes>
