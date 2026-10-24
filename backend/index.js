@@ -6,7 +6,8 @@ import express from "express";
 import { connectDB } from "./config/db.js";
 import trainRoutes from "./route/trainRoutes.js";
 import Pmplroute from "./route/Pmplroute.js";
-import msrtcRoutes from "./route/msrtcRoutes.js"
+import msrtcRoutes from "./route/msrtcRoutes.js";
+import TransitRoutes from "./route/TransitRoutes.js";
 import cors from "cors";
 
 const app = express();
@@ -19,20 +20,13 @@ app.use(express.json());
 
 // Middleware
 app.use(express.json());
-
-// // Home route
-// app.get("/", (req, res) => {
-//     res.json({
-//         message: "Backend server is running successfully!"
-//     });
-// });
-
 connectDB();
 
 // Routes
 app.use("/api/trains", trainRoutes);
 app.use("/api/pmpl", Pmplroute);
 app.use("/api/msrtcbus",msrtcRoutes);
+app.use("/api/transit-stops",TransitRoutes);
 
 app.get("/", (req, res) => {
   res.send("TransitHub Backend is Running");

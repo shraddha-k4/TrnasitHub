@@ -115,6 +115,9 @@ export const searchbus = `${baseUrl}/api/msrtcbus/search`;
 export const createmetro = `${baseUrl}/api/metro/createmetro`;
 export const getallmetro = `${baseUrl}/api/metro/getallmetro`;
 
+export const getallTransitRoutes = `${baseUrl}/api/transit-stops`;
+export const pushTransitStope = `${baseUrl}/api/transit-stops/bulk`;
+
 export const apiRequest = async (url, options = {}) => {
   try {
     const response = await fetch(url, {
