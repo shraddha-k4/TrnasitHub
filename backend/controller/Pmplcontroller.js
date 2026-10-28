@@ -1,4 +1,4 @@
-import PmplModel from "../model/pmplmodel.js";
+import PmplModel from "../model/PmplModel.js";
 
 
 

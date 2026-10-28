@@ -8,6 +8,7 @@ import trainRoutes from "./route/trainRoutes.js";
 import Pmplroute from "./route/Pmplroute.js";
 import msrtcRoutes from "./route/msrtcRoutes.js";
 import TransitRoutes from "./route/TransitRoutes.js";
+import routePlannerRoutes from "./route/routePlannerRoutes.js";
 import cors from "cors";
 
 const app = express();
@@ -27,7 +28,7 @@ app.use("/api/trains", trainRoutes);
 app.use("/api/pmpl", Pmplroute);
 app.use("/api/msrtcbus",msrtcRoutes);
 app.use("/api/transit-stops",TransitRoutes);
-
+app.use("/api/route-planner", routePlannerRoutes);
 app.get("/", (req, res) => {
   res.send("TransitHub Backend is Running");
 });
