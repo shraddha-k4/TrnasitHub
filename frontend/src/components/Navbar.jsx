@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import TransitHublogo from "../assets/TransitHublogo.png";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -29,8 +30,12 @@ export default function Navbar() {
           className="flex items-center space-x-2.5 group cursor-pointer flex-shrink-0"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-600 via-amber-500 to-yellow-400 flex items-center justify-center text-white text-xl shadow-md group-hover:scale-105 transition-transform cursor-pointer">
-            🚆
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-600 via-amber-500 to-yellow-400 flex items-center justify-center text-white text-xl shadow-md group-hover:scale-105 transition-transform cursor-pointer">
+            <img
+              src={TransitHublogo}
+              alt="TransitHub"
+              className="w-50 h-50 rounded-xl object-contain group-hover:scale-105 transition-transform"
+            />
           </div>
           <div>
             <span className="text-2xl font-black bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 bg-clip-text text-transparent tracking-tight cursor-pointer">

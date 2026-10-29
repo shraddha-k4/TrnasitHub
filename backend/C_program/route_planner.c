@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-#define API_URL "http://localhost:5000/api/route-planner/all-for-c"
+#define API_URL "https://trnasithub.onrender.com/api/route-planner/all-for-c"
 
 #define MAX_INPUT 256
 #define MAX_COMMAND 1600

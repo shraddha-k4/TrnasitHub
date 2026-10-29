@@ -12,7 +12,7 @@ const currentFile = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(currentFile);
 console.log("ROUTE PLANNER FILE LOADED:", currentFile);
 const cProgramDir = path.resolve(currentDir, "../C_program");
-const cExecutable = path.join(cProgramDir, "route_planner.exe");
+const cExecutable = path.join(cProgramDir, "route_planner");
 
 // ---------- Helpers ----------
 const str = (v) =>

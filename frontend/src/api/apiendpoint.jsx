@@ -1,4 +1,5 @@
-export const baseUrl = "http://localhost:5000";
+// export const baseUrl = "http://localhost:5000";
+export const baseUrl = "https://trnasithub.onrender.com";
 
 //routes of train
 export const createtrain = `${baseUrl}/api/trains/createtrain`; //multiples train can add
