@@ -23,6 +23,32 @@ export const getallmetro = `${baseUrl}/api/metro/getallmetro`;
 export const getallTransitRoutes = `${baseUrl}/api/transit-stops`;
 export const pushTransitStope = `${baseUrl}/api/transit-stops/bulk`;
 
+export const allRoutesForC = `${baseUrl}/api/route-planner/all-for-c`;
+export const searchRoutePlannerC = `${baseUrl}/api/route-planner/search-c`;
+
+export const fetchAllRoutesForC = async () => {
+  try {
+    const res = await fetch(allRoutesForC);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return { success: true, data: await res.json() };
+  } catch (error) {
+    console.error("fetchAllRoutesForC error:", error);
+    return { success: false, data: null, error: error.message };
+  }
+};
+
+export const searchRoutesForC = async ({ from, to, departureTime = "", keyword = "" }) => {
+  try {
+    const params = new URLSearchParams({ from, to, departureTime, keyword });
+    const res = await fetch(`${searchRoutePlannerC}?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return { success: true, data: await res.json() };
+  } catch (error) {
+    console.error("searchRoutesForC error:", error);
+    return { success: false, data: null, error: error.message };
+  }
+};
+
 export const apiRequest = async (url, options = {}) => {
   try {
     const response = await fetch(url, {
@@ -53,6 +79,38 @@ export const apiRequest = async (url, options = {}) => {
     };
   }
 };
+
+
+// export const apiRequest = async (url, options = {}) => {
+//   try {
+//     const response = await fetch(url, {
+//       ...options,
+//       headers: {
+//         "Content-Type": "application/json",
+//         ...(options.headers || {})
+//       }
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`API Error: ${response.status}`);
+//     }
+
+//     const data = await response.json();
+
+//     return {
+//       success: true,
+//       data
+//     };
+//   } catch (error) {
+//     console.error("Backend API Error:", error.message);
+
+//     return {
+//       success: false,
+//       data: null,
+//       error: error.message
+//     };
+//   }
+// };
 
 // ===============================
 // TRAIN

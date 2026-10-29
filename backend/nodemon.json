@@ -1,0 +1,4 @@
+{
+  "ignore": ["C_program/*", "C_program/**", "*.json", "node_modules"],
+  "ext": "js,mjs"
+}

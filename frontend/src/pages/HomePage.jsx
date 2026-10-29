@@ -274,39 +274,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* POPULAR ROUTE SHORTCUTS */}
-      {/* <section className="bg-gray-100 py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto text-center space-y-8">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Popular Commuter Routes</h2>
-            <p className="text-gray-600 text-sm mt-1">Click any route below to quickly open it in the Route Planner.</p>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-3">
-            {[
-              { from: "Talegaon Dabhade", to: "Pune Junction" },
-              { from: "Pune Junction", to: "Talegaon Dabhade" },
-              { from: "Shivajinagar", to: "Lonavala" },
-              { from: "Swargate", to: "Hinjawadi" },
-              { from: "Pimpri", to: "Pune Station" },
-              { from: "Katraj", to: "MaNaPa PMC" },
-              { from: "Hadapsar", to: "Deccan Gymkhana" }
-            ].map((route, idx) => (
-              <Link
-                key={idx}
-                to={`/route-planner?from=${encodeURIComponent(route.from)}&to=${encodeURIComponent(route.to)}`}
-                className="bg-white hover:bg-orange-500 hover:text-white border border-gray-200 text-gray-800 font-semibold text-sm px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition flex items-center space-x-2 cursor-pointer"
-              >
-                <span>{route.from}</span>
-                <span className="text-orange-500 hover:text-white">➔</span>
-                <span>{route.to}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section> */}
-
-      {/* CALL TO ACTION */}
+     {/* CALL TO ACTION */}
       <section className="py-16 px-4 text-center max-w-4xl mx-auto">
         <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-8 sm:p-12 text-white shadow-xl space-y-4">
           <h2 className="text-3xl font-black">Ready to Start Your Journey?</h2>

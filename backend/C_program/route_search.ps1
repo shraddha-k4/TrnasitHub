@@ -1,15 +1,23 @@
-
+param(
+    [string]$From = "",
+    [string]$To = "",
+    [string]$DepartureTime = "",
+    [string]$Keyword = "",
+    [switch]$JsonOutput
+)
 
 $ErrorActionPreference = "Stop"
 
-# ---------- Helper functions ----------
+# ---------- Helper: Convert time to TimeSpan ----------
 
-# Converts a time string (AM/PM or 24-hour) to a TimeSpan. Returns $null if it can't be parsed.
-function Convert-ToTimeOfDay($text) {
-    $t = ([string]$text).Trim()
-    if ($t -eq "") { return $null }
+function Convert-ToTimeOfDay {
+    param([AllowNull()][string]$Text)
 
-    # Normalise things like "9.05 pm", "9:05pm", "9:05 p.m."
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return $null
+    }
+
+    $t = $Text.Trim()
     $t = $t -replace '\.(?=\d)', ':'
     $t = $t -replace '(?i)a\.?\s*m\.?', 'AM'
     $t = $t -replace '(?i)p\.?\s*m\.?', 'PM'
@@ -17,12 +25,15 @@ function Convert-ToTimeOfDay($text) {
     $t = ($t -replace '\s+', ' ').Trim()
 
     $formats = [string[]]@(
-        "h:mm tt", "hh:mm tt", "h:mm:ss tt", "hh:mm:ss tt",
+        "h:mm tt", "hh:mm tt",
+        "h:mm:ss tt", "hh:mm:ss tt",
         "h tt", "hh tt",
-        "H:mm", "HH:mm", "H:mm:ss", "HH:mm:ss"
+        "H:mm", "HH:mm",
+        "H:mm:ss", "HH:mm:ss"
     )
 
     $parsed = [DateTime]::MinValue
+
     $ok = [DateTime]::TryParseExact(
         $t,
         $formats,
@@ -31,20 +42,35 @@ function Convert-ToTimeOfDay($text) {
         [ref]$parsed
     )
 
-    if ($ok) { return $parsed.TimeOfDay }
+    if ($ok) {
+        return $parsed.TimeOfDay
+    }
+
     return $null
 }
 
-function Find-StopIndex($stops, $location) {
-    for ($i = 0; $i -lt $stops.Count; $i++) {
-        if ([string]$stops[$i] -and
-            ([string]$stops[$i]).IndexOf(
-                $location,
+# ---------- Helper: Find stop index ----------
+
+function Find-StopIndex {
+    param(
+        [object[]]$Stops,
+        [string]$Location
+    )
+
+    for ($i = 0; $i -lt $Stops.Count; $i++) {
+        $stop = [string]$Stops[$i]
+
+        if (
+            -not [string]::IsNullOrWhiteSpace($stop) -and
+            $stop.IndexOf(
+                $Location,
                 [StringComparison]::OrdinalIgnoreCase
-            ) -ge 0) {
+            ) -ge 0
+        ) {
             return $i
         }
     }
+
     return -1
 }
 
@@ -53,98 +79,148 @@ function Find-StopIndex($stops, $location) {
 try {
     $jsonPath = Join-Path $PSScriptRoot "routes.json"
 
-    if (!(Test-Path $jsonPath)) {
-        Write-Host "ERROR: routes.json not found."
-        exit 1
+    if (-not (Test-Path -LiteralPath $jsonPath)) {
+        throw "routes.json not found: $jsonPath"
     }
 
-    $response = Get-Content -Path $jsonPath -Raw |
+    $response = Get-Content -LiteralPath $jsonPath -Raw |
                 ConvertFrom-Json
 
     if ($response.success -ne $true) {
-        Write-Host "ERROR: Backend returned success=false."
-        exit 1
+        throw "Backend returned success=false."
+    }
+
+    if ($null -eq $response.data) {
+        throw "Backend response does not contain data."
     }
 
     $routes = @($response.data)
 
-    Write-Host "Routes received from API: $($routes.Count)"
-    Write-Host ""
+    # ---------- Input: Frontend parameters or terminal ----------
 
-    $from = Read-Host "Enter starting location (e.g. Talegaon)"
-    $to = Read-Host "Enter destination (e.g. Pune)"
-    $depInput = Read-Host "Enter departure time - show schedules from this time onwards (e.g. 3:30 PM or 15:30; optional)"
-    $keyword = Read-Host "Enter keyword (mode, bus, train, stop; optional)"
+    if (-not $JsonOutput) {
+        Write-Host ""
+        Write-Host "===================================="
+        Write-Host "     TRANSITHUB ROUTE PLANNER"
+        Write-Host "===================================="
+        Write-Host "Routes received from API: $($routes.Count)"
+        Write-Host ""
 
-    # Parse the departure time entered by the user
-    $minTime = $null
-    if ($depInput.Trim() -ne "") {
-        $minTime = Convert-ToTimeOfDay $depInput
-        if ($null -eq $minTime) {
-            Write-Host "ERROR: Could not understand time '$depInput'. Use format like 3:30 PM or 15:30."
-            exit 1
+        if ([string]::IsNullOrWhiteSpace($From)) {
+            $From = Read-Host "Enter starting location (e.g. Pune)"
+        }
+
+        if ([string]::IsNullOrWhiteSpace($To)) {
+            $To = Read-Host "Enter destination (e.g. Pimpri)"
+        }
+
+        if ([string]::IsNullOrWhiteSpace($DepartureTime)) {
+            $DepartureTime = Read-Host "Enter departure time (optional, e.g. 3:30 PM or 15:30)"
+        }
+
+        if ([string]::IsNullOrWhiteSpace($Keyword)) {
+            $Keyword = Read-Host "Enter keyword (optional, e.g. train, bus, metro)"
         }
     }
+
+    $from = $From.Trim()
+    $to = $To.Trim()
+    $depInput = $DepartureTime.Trim()
+    $keyword = $Keyword.Trim()
+
+    if ([string]::IsNullOrWhiteSpace($from)) {
+        throw "Starting location cannot be empty."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($to)) {
+        throw "Destination cannot be empty."
+    }
+
+    # ---------- Parse departure time ----------
+
+    $minTime = $null
+
+    if (-not [string]::IsNullOrWhiteSpace($depInput)) {
+        $minTime = Convert-ToTimeOfDay $depInput
+
+        if ($null -eq $minTime) {
+            throw "Invalid time '$depInput'. Use 3:30 PM or 15:30."
+        }
+    }
+
+    # ---------- Search routes ----------
 
     $results = @(
         foreach ($route in $routes) {
             $stops = @($route.stops)
 
-            # Match source and destination in the correct order.
-            if ($from.Trim() -ne "" -and $to.Trim() -ne "") {
-                $startIndex = Find-StopIndex $stops $from
-                $endIndex = Find-StopIndex $stops $to
+            $startIndex = Find-StopIndex -Stops $stops -Location $from
+            $endIndex = Find-StopIndex -Stops $stops -Location $to
 
-                # If stops are missing, fall back to route endpoints.
-                if ($startIndex -lt 0 -and
-                    ([string]$route.from).IndexOf(
-                        $from, [StringComparison]::OrdinalIgnoreCase
-                    ) -ge 0) {
-                    $startIndex = 0
-                }
-
-                if ($endIndex -lt 0 -and
-                    ([string]$route.to).IndexOf(
-                        $to, [StringComparison]::OrdinalIgnoreCase
-                    ) -ge 0) {
-                    $endIndex = [Math]::Max(1, $stops.Count - 1)
-                }
-
-                if ($startIndex -lt 0 -or
-                    $endIndex -lt 0 -or
-                    $startIndex -ge $endIndex) {
-                    continue
-                }
+            # Fallback to route endpoints.
+            if (
+                $startIndex -lt 0 -and
+                ([string]$route.from).IndexOf(
+                    $from, [StringComparison]::OrdinalIgnoreCase
+                ) -ge 0
+            ) {
+                $startIndex = 0
             }
 
-            # Departure time filter: keep only schedules at/after the entered time.
+            if (
+                $endIndex -lt 0 -and
+                ([string]$route.to).IndexOf(
+                    $to, [StringComparison]::OrdinalIgnoreCase
+                ) -ge 0
+            ) {
+                $endIndex = [Math]::Max(1, $stops.Count - 1)
+            }
+
+            # Require source and destination in forward order.
+            if (
+                $startIndex -lt 0 -or
+                $endIndex -lt 0 -or
+                $startIndex -ge $endIndex
+            ) {
+                continue
+            }
+
+            # Departure time filter.
             if ($null -ne $minTime) {
-                $routeTime = Convert-ToTimeOfDay $route.departure_time
+                $routeTime = Convert-ToTimeOfDay (
+                    [string]$route.departure_time
+                )
+
                 if ($null -eq $routeTime -or $routeTime -lt $minTime) {
                     continue
                 }
             }
 
-            # Search keyword in route details and stop names.
-            if ($keyword.Trim() -ne "") {
+            # Keyword search.
+            if (-not [string]::IsNullOrWhiteSpace($keyword)) {
                 $fields = @(
-                    $route.mode,
-                    $route.route_number,
-                    $route.route_name,
-                    $route.from,
-                    $route.to,
-                    $route.operator,
-                    $route.departure_time,
-                    $route.arrival_time,
+                    $route.mode
+                    $route.route_number
+                    $route.route_name
+                    $route.from
+                    $route.to
+                    $route.operator
+                    $route.departure_time
+                    $route.arrival_time
+                    $route.duration
                     $route.searchable
                 ) + $stops
 
-                $allText = $fields -join " "
+                $allText = ($fields | ForEach-Object {
+                    [string]$_
+                }) -join " "
 
-                if ($allText.IndexOf(
-                    $keyword,
-                    [StringComparison]::OrdinalIgnoreCase
-                ) -lt 0) {
+                if (
+                    $allText.IndexOf(
+                        $keyword,
+                        [StringComparison]::OrdinalIgnoreCase
+                    ) -lt 0
+                ) {
                     continue
                 }
             }
@@ -153,34 +229,88 @@ try {
         }
     )
 
-    # Sort chronologically by departure time (AM before PM, 12:xx AM first).
-    # Unparseable times go to the end. Ties are ordered by route number.
+    # ---------- Sort by departure time ----------
+
     $sorted = @(
         $results | Sort-Object -Property @(
-            @{ Expression = {
-                $t = Convert-ToTimeOfDay $_.departure_time
-                if ($null -eq $t) { [TimeSpan]::MaxValue } else { $t }
-            } },
-            @{ Expression = { [string]$_.route_number } }
+            @{
+                Expression = {
+                    $t = Convert-ToTimeOfDay ([string]$_.departure_time)
+
+                    if ($null -eq $t) {
+                        [TimeSpan]::MaxValue
+                    }
+                    else {
+                        $t
+                    }
+                }
+            },
+            @{
+                Expression = { [string]$_.route_number }
+            }
         )
     )
+
+    # ---------- Prepare structured output ----------
+
+    $output = @(
+        foreach ($route in $sorted) {
+            [PSCustomObject]@{
+                mode           = [string]$route.mode
+                route_number   = [string]$route.route_number
+                route_name     = [string]$route.route_name
+                from           = [string]$route.from
+                to             = [string]$route.to
+                departure_time = [string]$route.departure_time
+                arrival_time   = [string]$route.arrival_time
+                duration       = [string]$route.duration
+                operator       = [string]$route.operator
+                stops          = @($route.stops)
+            }
+        }
+    )
+
+    # ---------- JSON output for Express / React ----------
+
+    if ($JsonOutput) {
+        $jsonResult = [PSCustomObject]@{
+            success = $true
+            from    = $from
+            to      = $to
+            count   = $output.Count
+            data    = @($output)
+        }
+
+        ConvertTo-Json -InputObject $jsonResult -Depth 6 -Compress
+        exit 0
+    }
+
+    # ---------- Terminal output ----------
 
     Write-Host ""
     Write-Host "===================================="
     Write-Host "       ROUTE SEARCH RESULTS"
     Write-Host "===================================="
+    Write-Host "From: $from"
+    Write-Host "To: $to"
+
     if ($null -ne $minTime) {
-        Write-Host "Departing from: $depInput onwards"
+        Write-Host "Departure time: $depInput onwards"
     }
+
+    if ($keyword) {
+        Write-Host "Keyword: $keyword"
+    }
+
     Write-Host "Matching routes: $($sorted.Count)"
     Write-Host ""
 
     if ($sorted.Count -eq 0) {
         Write-Host "No matching routes found."
-        Write-Host "Try another location, time or keyword."
+        Write-Host "Check locations, stops, time and keyword."
     }
     else {
-        $sorted |
+        $output |
             Select-Object mode, route_number, route_name,
                 from, to, departure_time, arrival_time, duration,
                 @{Name="Stops"; Expression={
@@ -188,8 +318,23 @@ try {
                 }} |
             Format-Table -AutoSize -Wrap
     }
+
+    Write-Host ""
+    Write-Host "Route search completed."
 }
 catch {
-    Write-Host "ERROR: $($_.Exception.Message)"
+    if ($JsonOutput) {
+        [PSCustomObject]@{
+            success = $false
+            message = $_.Exception.Message
+            data    = @()
+            count   = 0
+        } | ConvertTo-Json -Depth 5 -Compress
+    }
+    else {
+        Write-Host ""
+        Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
     exit 1
 }
