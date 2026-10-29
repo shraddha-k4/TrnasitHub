@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import TransitHublogo from "../assets/TransitHublogo.png";
 
 export default function Footer() {
   return (
@@ -8,8 +9,12 @@ export default function Footer() {
         {/* BRAND & INFO */}
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white text-lg">
-              🚆
+            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white text-lg">
+              <img
+                src={TransitHublogo}
+                alt="TransitHub"
+                className="w-50 h-50 rounded-full object-contain group-hover:scale-105 transition-transform"
+              />
             </div>
             <span className="text-2xl font-black text-white tracking-tight">TransitHub</span>
           </div>

@@ -34,7 +34,7 @@ export default function Navbar() {
             <img
               src={TransitHublogo}
               alt="TransitHub"
-              className="w-50 h-50 rounded-xl object-contain group-hover:scale-105 transition-transform"
+              className="w-50 h-50 rounded-full object-contain group-hover:scale-105 transition-transform"
             />
           </div>
           <div>
