@@ -460,7 +460,7 @@ export default function TimetablesPage() {
                     <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[700px]">
                       <thead>
                         <tr className="bg-orange-500 text-white text-[11px] uppercase tracking-wider font-bold">
-                          <th className="py-3.5 px-4">Bus ID</th>
+                          <th className="py-3.5 px-4">Bus No</th>
                           <th className="py-3.5 px-4">Type & Operator</th>
                           <th className="py-3.5 px-4">From (Origin)</th>
                           <th className="py-3.5 px-4">To (Destination)</th>
@@ -554,7 +554,7 @@ export default function TimetablesPage() {
                       <thead>
                         <tr className="bg-orange-500 text-white text-[11px] uppercase tracking-wider font-bold">
                           <th className="py-3.5 px-4">Route No</th>
-                          <th className="py-3.5 px-4">Bus Fleet No</th>
+                          <th className="py-3.5 px-4">Bus No</th>
                           <th className="py-3.5 px-4">From (Source)</th>
                           <th className="py-3.5 px-4">To (Destination)</th>
                           <th className="py-3.5 px-4 text-center">Departure</th>

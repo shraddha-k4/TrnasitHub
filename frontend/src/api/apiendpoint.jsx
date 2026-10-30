@@ -1,5 +1,5 @@
-// export const baseUrl = "http://localhost:5000";
-export const baseUrl = "https://trnasithub.onrender.com";
+export const baseUrl = "http://localhost:5000";
+// export const baseUrl = "https://trnasithub.onrender.com";
 
 //routes of train
 export const createtrain = `${baseUrl}/api/trains/createtrain`; //multiples train can add
@@ -165,7 +165,7 @@ export const fetchRoutesForC = async (source, destination, departureTime = "", k
     if (departureTime) params.append("time", departureTime);
     if (keyword) params.append("keyword", keyword);
 
-    const response = await fetch(`http://localhost:5000/api/route-planner/all-for-c?${params.toString()}`);
+    const response = await fetch(`${baseUrl}/api/route-planner/all-for-c?${params.toString()}`);
     const data = await response.json();
     return { success: true, data };
   } catch (error) {

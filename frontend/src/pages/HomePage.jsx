@@ -86,7 +86,7 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight leading-tight">
-            Train, PMPL, Bus, Metro & MSRTC
+            Train, PMPL, Metro & MSRTC Bus
             <br />
             <span className="bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-500 bg-clip-text text-transparent">
               ALL-IN-ONE PUNE TRANSIT SYSTEM
